@@ -233,3 +233,19 @@ File.WriteAllText() ->  cleaned .txt file saved
 ```
 
 In short: `Main()` organizes the work, `GetTextFilePaths()` finds the files, `ReadTextFile()` reads one file, `CleanText()` cleans its text, and `ProcessReviewDirectory()` repeats that for every file in a folder.
+
+ChatGPT:
+**Stage 1 — Basic Cleaning**
+- Remove HTML tags such as `<br />`.
+- Convert HTML entities, such as `&amp;`, into their correct characters.
+- Normalize spaces and line breaks.
+- Convert the text to lowercase.
+
+**Stage 2 — Linguistic Processing**
+- Expand contractions, such as changing `don't` to `do not`.
+- Split the text into words (tokenization).
+- Report how punctuation marks and symbols are handled.
+- We will not remove negation words or common words (stop words) at this stage, and we will not apply stemming in this phase.
+
+**Important Project Design Point**
+Always keep the original text, and make the cleaning process produce a new text. This way, you can compare the two versions and correct any issues without having to read the files from the beginning again.
