@@ -85,3 +85,151 @@ movie good recommend
 ```
 
 The bad version removes `not`, loses the negation in `wouldn't`, and discards the exclamation mark—losing much of the negative sentiment. [labelyourdata](https://labelyourdata.com/articles/natural-language-processing/sentiment-analysis)
+
+
+me: explain simply what each function does (asking about commit e29a776)
+perplexity:
+Here is what each function does, in simple terms.
+
+## `Main()`
+
+`Main()` is the starting point of your program.
+
+It:
+
+1. Sets the location of the original dataset.
+2. Sets the location where cleaned files will be saved.
+3. Creates a list of the four review folders:
+   - `train/pos`
+   - `train/neg`
+   - `test/pos`
+   - `test/neg`
+4. Sends each folder, one at a time, to `ProcessReviewDirectory`.
+
+Think of `Main()` as the manager: it does not read or clean the files itself; it tells the other functions what to do.
+
+```csharp
+static void Main()
+```
+
+`void` means `Main()` does not return a value.
+
+## `ReadTextFile()`
+
+`ReadTextFile()` reads the text from **one** `.txt` file.
+
+It receives a relative file path, such as:
+
+```text
+aclImdb_v1\aclImdb\test\neg\0_2.txt
+```
+
+Then it:
+
+1. Converts the relative path into a full path.
+2. Checks whether the file exists.
+3. If it does not exist, prints an error and returns `null`.
+4. If it exists, reads all the text in the file.
+5. Returns that text as a `string`.
+
+```csharp
+static string ReadTextFile(string relativeFilePath)
+```
+
+- Input: one file path.
+- Output: the review text, or `null` if the file cannot be found.
+
+## `GetTextFilePaths()`
+
+`GetTextFilePaths()` finds all `.txt` files inside **one folder**.
+
+For example, if you give it:
+
+```text
+aclImdb_v1\aclImdb\test\neg
+```
+
+it returns a list of paths like:
+
+```text
+aclImdb_v1\aclImdb\test\neg\0_2.txt
+aclImdb_v1\aclImdb\test\neg\1_3.txt
+aclImdb_v1\aclImdb\test\neg\2_1.txt
+```
+
+It does **not** read the reviews. It only collects the file paths.
+
+```csharp
+static List<string> GetTextFilePaths(string relativeDirectoryPath)
+```
+
+- Input: one folder path.
+- Output: a list containing the paths of all `.txt` files in that folder.
+
+## `ProcessReviewDirectory()`
+
+`ProcessReviewDirectory()` processes every review in **one folder**.
+
+It receives two paths:
+
+- The input folder, such as `aclImdb_v1\aclImdb\test\neg`
+- The output folder, such as `processed_data\test\neg`
+
+Then it:
+
+1. Calls `GetTextFilePaths()` to get all `.txt` file paths.
+2. Creates the output folder if it does not already exist.
+3. Loops through the file paths one by one.
+4. Calls `ReadTextFile()` to read each review once.
+5. Calls `CleanText()` to clean the review text.
+6. Writes the cleaned text to the matching file in the output folder.
+
+```csharp
+static void ProcessReviewDirectory(string inputDirectory, string outputDirectory)
+```
+
+- Input: an input folder and an output folder.
+- Output: none; instead, it creates cleaned `.txt` files on disk.
+
+## `CleanText()`
+
+`CleanText()` cleans the text of **one review**.
+
+Right now, it only removes extra spaces from the beginning and end:
+
+```csharp
+return text.Trim();
+```
+
+Later, you will add steps such as:
+
+- Removing HTML tags
+- Normalizing spaces
+- Lowercasing
+- Expanding contractions
+- Keeping negation words such as `not` and `no`
+
+```csharp
+static string CleanText(string text)
+```
+
+- Input: the original review text.
+- Output: the cleaned review text.
+
+## The flow
+
+```text
+Main()
+  ↓
+ProcessReviewDirectory()
+  ↓
+GetTextFilePaths()  ->  list of .txt file paths
+  ↓
+ReadTextFile()      ->  original review text
+  ↓
+CleanText()         ->  cleaned review text
+  ↓
+File.WriteAllText() ->  cleaned .txt file saved
+```
+
+In short: `Main()` organizes the work, `GetTextFilePaths()` finds the files, `ReadTextFile()` reads one file, `CleanText()` cleans its text, and `ProcessReviewDirectory()` repeats that for every file in a folder.
