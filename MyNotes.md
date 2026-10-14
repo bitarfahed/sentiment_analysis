@@ -249,3 +249,110 @@ ChatGPT:
 
 **Important Project Design Point**
 Always keep the original text, and make the cleaning process produce a new text. This way, you can compare the two versions and correct any issues without having to read the files from the beginning again.
+
+
+
+perplexity:
+# What Each Stage Does
+
+This preprocessing pipeline turns raw movie reviews into a consistent, model-friendly text format while preserving sentiment signals such as negation, punctuation, and emotion.
+
+## Stage 1: CleanBasicText
+
+`CleanBasicText` removes formatting noise and standardizes the text before tokenization.
+
+| Step | Example before | Example after |
+|---|---|---|
+| Remove HTML tags | `This was <br /> great` | `This was great` |
+| Decode HTML entities | `I &amp; my friend` | `I & my friend` |
+| Normalize whitespace | `Good movie.\nReally!` | `Good movie. Really!` |
+| Lowercase | `This Movie Was Great` | `this movie was great` |
+
+`WebUtility.HtmlDecode` handles common HTML entities such as `&amp;`, `&quot;`, and `&lt;`; it converts HTML-encoded characters back into their normal text representation. [learn.microsoft](https://learn.microsoft.com/en-us/dotnet/api/system.net.webutility.htmldecode?view=net-10.0)
+
+`ToLowerInvariant()` is preferred over `ToLower()` because it produces consistent lowercase behavior regardless of the computer’s current language or culture settings.
+
+## Stage 2: ExpandContractions
+
+`ExpandContractions` converts shortened word forms into their full equivalents. This makes the text more consistent and helps preserve meaning—especially negation.
+
+| Before | After |
+|---|---|
+| `don't` | `do not` |
+| `won't` | `will not` |
+| `can't` | `cannot` |
+| `they're` | `they are` |
+| `I've` | `I have` |
+
+The order matters: `won't` and `can't` must be handled before a general `n't` rule. This prevents incorrect expansions and preserves negation, which is essential for sentiment analysis.
+
+## Stage 3: TokenizeText
+
+`TokenizeText` splits the cleaned text into individual words and keeps selected punctuation as separate tokens.
+
+Example:
+
+```text
+this movie was not good! i wouldn't recommend it.
+```
+
+becomes:
+
+```text
+this
+movie
+was
+not
+good
+!
+i
+would
+not
+recommend
+it
+.
+```
+
+## Punctuation and Symbols Policy
+
+For this first version, the tokenizer uses the following rules:
+
+| Item | Decision | Reason |
+|---|---|---|
+| `!` | Keep as its own token | Can indicate strong emotion |
+| `?` | Keep as its own token | Can indicate a question |
+| `. , ; :` | Keep as separate tokens | Useful for sentence structure and later experiments |
+| Apostrophes | Remove after contraction expansion | Contractions are already expanded |
+| Other symbols | Remove | Usually noise for a first bag-of-words or TF-IDF model |
+| Negation words | Keep | `not`, `no`, and `never` can reverse sentiment |
+| Stop words | Keep | Avoid accidentally removing sentiment-important words |
+| Stemming | Do not apply | Not needed for the first baseline model |
+
+## Keep Original and Processed Versions
+
+The existing `ProcessReviewDirectory` design already satisfies the requirement to preserve both versions:
+
+```csharp
+string originalText = ReadTextFile(inputFilePath);
+string cleanedText = CleanText(originalText);
+File.WriteAllText(outputFilePath, cleanedText);
+```
+
+- `originalText` exists only in memory during processing.
+- The original `.txt` file in `aclImdb_v1` is never changed.
+- The cleaned version is written to `processed_data`.
+- Any original and cleaned file can be compared side by side.
+
+If a cleaning mistake is found, fix `CleanText`, delete or regenerate `processed_data`, and run the program again.
+
+For debugging, temporarily print both versions for one file:
+
+```csharp
+Console.WriteLine("ORIGINAL:");
+Console.WriteLine(originalText);
+
+Console.WriteLine("CLEANED:");
+Console.WriteLine(cleanedText);
+```
+
+This helps verify that HTML tags disappear, entities decode correctly, whitespace is normalized, contractions expand, and negation remains intact. [learn.microsoft](https://learn.microsoft.com/en-us/dotnet/api/system.net.webutility.htmldecode?view=net-10.0)
