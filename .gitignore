@@ -1,0 +1,31 @@
+# Build output
+bin/
+obj/
+
+# Visual Studio user-specific files
+.vs/
+*.user
+*.suo
+*.rsuser
+
+# Publish output
+publish/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+~$*
+
+# NuGet packages
+packages/
+
+# Test results
+TestResults/
+
+# OS files
+Thumbs.db
+.DS_Store
+
+aclImdb_v1/
