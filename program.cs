@@ -29,6 +29,14 @@ class Program
         }
 
         Console.WriteLine("Finished processing all reviews.");
+
+        var (trainingReviews, validationReviews) = LoadAndSplitProcessedDataset(
+    Path.Combine("processeddata", "train", "pos"),
+    Path.Combine("processeddata", "train", "neg")
+);
+
+        Console.WriteLine($"Training reviews: {trainingReviews.Count}");
+        Console.WriteLine($"Validation reviews: {validationReviews.Count}");
     }
 
     static string ReadTextFile(string relativeFilePath)
@@ -43,6 +51,7 @@ class Program
 
         return File.ReadAllText(fullPath);
     }
+
 
     static List<string> GetTextFilePaths(string relativeDirectoryPath)
     {
@@ -174,4 +183,66 @@ class Program
         return tokens;
     }
 
+    class ReviewData
+    {
+        public string Text { get; set; }
+        public string Label { get; set; }
+        public string FilePath { get; set; }
+    }
+
+    static (List<ReviewData> TrainingReviews, List<ReviewData> ValidationReviews)
+        LoadAndSplitProcessedDataset(string positiveDirectory, string negativeDirectory)
+    {
+        // Change these values to control the experiment size and split.
+        int Size = 100;
+        double Split = 0.8;
+
+        var trainingReviews = new List<ReviewData>();
+        var validationReviews = new List<ReviewData>();
+
+        LoadLabeledReviews(positiveDirectory, "positive", Size, Split, trainingReviews, validationReviews);
+        LoadLabeledReviews(negativeDirectory, "negative", Size, Split, trainingReviews, validationReviews);
+
+        return (trainingReviews, validationReviews);
+    }
+
+    static void LoadLabeledReviews(
+        string directory,
+        string label,
+        int size,
+        double split,
+        List<ReviewData> trainingReviews,
+        List<ReviewData> validationReviews)
+    {
+        List<string> filePaths = GetTextFilePaths(directory);
+
+        int reviewCount = Math.Min(size, filePaths.Count);
+        int trainingCount = (int)Math.Floor(reviewCount * split);
+
+        for (int i = 0; i < reviewCount; i++)
+        {
+            string text = ReadTextFile(filePaths[i]);
+
+            if (text == null)
+            {
+                continue;
+            }
+
+            var review = new ReviewData
+            {
+                Text = text,
+                Label = label,
+                FilePath = filePaths[i]
+            };
+
+            if (i < trainingCount)
+            {
+                trainingReviews.Add(review);
+            }
+            else
+            {
+                validationReviews.Add(review);
+            }
+        }
+    }
 }

@@ -356,3 +356,13 @@ Console.WriteLine(cleanedText);
 ```
 
 This helps verify that HTML tags disappear, entities decode correctly, whitespace is normalized, contractions expand, and negation remains intact. [learn.microsoft](https://learn.microsoft.com/en-us/dotnet/api/system.net.webutility.htmldecode?view=net-10.0)
+
+
+
+
+
+LoadAndSplitProcessedDataset:
+What it does
+With Size = 100 and Split = 0.8, it loads the first 100 positive and first 100 negative processed .txt files. From each label, it places the first 80 reviews into training and the remaining 20 into validation. The final result is 160 training reviews and 40 validation reviews, with an equal number of positive and negative reviews in each set.
+
+The split is stratified: it splits each sentiment class separately, so changing Size will not accidentally make the validation set mostly positive or mostly negative.
