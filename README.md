@@ -1,0 +1,203 @@
+# IMDb Sentiment Analysis in C#
+
+## Overview
+
+This project implements and compares two sentiment classification approaches in C# using the IMDb Large Movie Review Dataset.
+
+The goal is to classify movie reviews as **positive** or **negative**, evaluate both models, and compare their performance.
+
+The project uses two approaches:
+
+1. **Manual Word-Based Classifier** — a manually implemented Multinomial Naive Bayes-style classifier using word frequencies and Laplace smoothing.
+2. **ML.NET Model** — a machine learning pipeline using ML.NET text featurization and SDCA Logistic Regression.
+
+## Technologies
+
+- C#
+- .NET 10
+- ML.NET
+- Regular expressions for text preprocessing
+- IMDb Large Movie Review Dataset
+
+## Dataset
+
+The project uses the IMDb Large Movie Review Dataset, which contains labeled movie reviews divided into training and test sets.
+
+The expected original directory structure is:
+
+```text
+aclImdb_v1/
+└── aclImdb/
+    ├── train/
+    │   ├── pos/
+    │   └── neg/
+    └── test/
+        ├── pos/
+        └── neg/
+```
+
+Each directory contains `.txt` files representing individual reviews.
+
+The original dataset files are not modified. Cleaned reviews are saved separately in `processed_data/`.
+
+## Text Preprocessing
+
+Before classification, reviews are cleaned using the same preprocessing pipeline for both models.
+
+The pipeline performs the following operations:
+
+- Removes HTML tags.
+- Decodes HTML entities.
+- Normalizes whitespace.
+- Converts text to lowercase.
+- Expands common English contractions.
+- Tokenizes text while preserving words, numbers, and selected punctuation.
+- Saves the cleaned review as a text file.
+
+Stop words are not removed, and stemming is not applied.
+
+### Efficient preprocessing
+
+The project processes only the first configured number of files per class, using alphabetically sorted filenames. If a cleaned version of a selected file already exists, the program skips cleaning it again.
+
+This allows the second model to reuse previously cleaned reviews and process only additional files when it requires a larger dataset.
+
+The cleaned directory structure mirrors the original dataset:
+
+```text
+processed_data/
+├── train/
+│   ├── pos/
+│   └── neg/
+└── test/
+    ├── pos/
+    └── neg/
+```
+
+## Models
+
+### 1. Manual Word-Based Classifier
+
+The first model is implemented manually without using a machine learning framework for classification.
+
+It counts word occurrences in positive and negative training reviews and calculates class scores using a Multinomial Naive Bayes-style approach with Laplace smoothing.
+
+The model predicts the sentiment associated with the higher score.
+
+### 2. ML.NET Logistic Regression
+
+The second model uses ML.NET to build a binary sentiment classifier.
+
+The pipeline includes:
+
+- Text featurization using `FeaturizeText`.
+- Binary classification using SDCA Logistic Regression.
+
+The model learns from labeled training reviews and predicts whether unseen reviews are positive or negative.
+
+## Training and Evaluation
+
+Each model has its own configurable dataset size and training/validation split.
+
+For example, the default configuration uses:
+
+| Setting | Word-based model | ML.NET model |
+|---|---:|---:|
+| Selected reviews per class | 300 | 3,000 |
+| Training split | 80% | 80% |
+| Validation split | 20% | 20% |
+
+The selected positive and negative training reviews are divided into training and validation sets. The test set is kept separate and is not used to fit the model.
+
+Both models are evaluated using:
+
+- Accuracy
+- Precision
+- Recall
+- F1-score
+- Confusion matrix
+
+Training and evaluation times are also recorded.
+
+## Results
+
+Each model generates its own text report in the `results/` directory:
+
+```text
+results/
+├── word_count_report.txt
+└── mlnet_report.txt
+```
+
+The reports contain the experiment configuration, dataset sizes, execution times, validation metrics, and test metrics.
+
+## Configuration
+
+Dataset sizes and training splits can be changed inside the respective experiment methods in `Program.cs`.
+
+For example:
+
+```csharp
+int datasetSizePerClass = 300;
+double trainingSplit = 0.80;
+```
+
+The ML.NET experiment has its own corresponding settings.
+
+The dataset size refers to the number of positive reviews and the number of negative reviews selected per dataset group, before splitting the training data.
+
+## Requirements
+
+- .NET 10 SDK
+- IMDb Large Movie Review Dataset
+- The `Microsoft.ML` NuGet package
+
+## Running the Project
+
+1. Place the original IMDb dataset in the expected directory structure.
+2. Open a terminal in the directory containing `IMDbSentiment.csproj`.
+3. Restore the NuGet dependencies:
+
+   ```bash
+   dotnet restore
+   ```
+
+4. Run the project:
+
+   ```bash
+   dotnet run
+   ```
+
+5. Review the generated reports in the `results/` directory.
+
+## Project Structure
+
+```text
+.
+├── Program.cs
+├── IMDbSentiment.csproj
+├── aclImdb_v1/
+│   └── aclImdb/
+├── processed_data/
+└── results/
+```
+
+The `processed_data/` and `results/` directories are generated by the program as needed.
+
+## Limitations
+
+- Selecting the first files alphabetically may introduce ordering bias.
+- The manual classifier is a baseline and may not capture complex language patterns.
+- ML.NET text featurization is handled by the framework rather than implemented manually.
+- Model performance depends on the selected dataset size, split configuration, and preprocessing choices.
+
+## Future Improvements
+
+- Compare model performance across different dataset sizes.
+- Experiment with alternative text representations and classification algorithms.
+- Analyze misclassified reviews.
+- Improve reproducibility and document experimental findings.
+
+## Acknowledgements
+
+The project uses the IMDb Large Movie Review Dataset for sentiment classification research and experimentation.

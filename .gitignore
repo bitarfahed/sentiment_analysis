@@ -29,3 +29,6 @@ Thumbs.db
 .DS_Store
 
 aclImdb_v1/
+
+processed_data/
+results/
